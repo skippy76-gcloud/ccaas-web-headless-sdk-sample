@@ -1,0 +1,803 @@
+/* --- General Page & Professional Font --- */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+:root {
+    --primary-color: #007bff;
+    --user-bubble-color: #28a745; /* Green for user messages */
+    --agent-bubble-color: #E9E9EB; /* Light gray for agent messages */
+    --window-background: #ffffff;
+    --text-light: #ffffff;
+    --text-dark: #333333;
+    --background-dark-theme: #1a1a1a;
+    --background-light-theme: #f8faff; /* Defined light theme background */
+    --text-muted: #6c757d; /* For secondary text like instructions */
+    --border-color-light: #e0e0e0; /* For general borders */
+    --shadow-light: rgba(0, 0, 0, 0.1);
+    --shadow-medium: rgba(0, 0, 0, 0.2);
+
+      /* New variables for screenshot buttons */
+    --screenshot-button-bg: #e0f2ff; /* Light blue */
+    --screenshot-button-border: #007bff; /* Primary blue */
+    --screenshot-button-text: #007bff; /* Primary blue */
+    --screenshot-button-hover-bg: #cce7ff; /* Slightly darker light blue on hover */
+    --screenshot-button-shadow: rgba(0, 123, 255, 0.1);
+}
+
+/* ======================================================= */
+/* NEW ANIMATED DOT BACKGROUND & Overall Layout           */
+/* ======================================================= */
+body {
+    font-family: 'Nunito', sans-serif;
+    margin: 0;
+    background-color: var(--background-light-theme); /* Base color for the light theme */
+    
+    /* Animated dot pattern */
+    background-image:
+        radial-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1px), /* Lighter dots */
+        radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px); /* Even lighter dots */
+    background-size: 30px 30px, 60px 60px;
+    background-position: 0 0, 30px 30px;
+    animation: moveDots 10s linear infinite; /* Animation remains the same */
+    
+    /* Flexbox properties for centering content */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden; /* Prevent body scroll if content overflows */
+}
+
+/* --- NEW: Entrance Animation Keyframes --- */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Keyframe animation that moves the background position */
+@keyframes moveDots {
+   from {
+        background-position: 0 0, 30px 30px;
+   }
+   to {
+        background-position: 300px 0, 330px 30px;
+   }
+}
+
+/*.landing-container {
+    text-align: center;
+    animation: fadeIn 1s ease-out forwards; /* Entrance Animation */
+/*    padding: 20px; /* Add some padding for smaller screens */
+/*}*/
+
+.landing-container {
+    text-align: center;
+    animation: fadeIn 1s ease-out forwards; /* Entrance Animation */
+    padding: 20px;
+    
+    /* --- NEW/MODIFIED STYLES --- */
+    /* If the parent is a flex/grid container, this will align it to the top */
+    align-self: flex-start; 
+    
+    /* Set max-width if needed to contain the text (optional but good practice) */
+    max-width: 800px;
+    width: 100%;
+    margin-left: auto; /* Center horizontally */
+    margin-right: auto; /* Center horizontally */
+    
+    /* Add top margin to push it down slightly from the very edge (optional) */
+    margin-top: 50px; 
+}
+.page-header h1 {
+    font-size: clamp(2.5rem, 8vw, 4rem); /* Responsive font size */
+    font-weight: 900;
+    color: var(--text-dark);
+    margin: 0;
+    letter-spacing: -2px;
+    line-height: 1.1;
+}
+
+.page-header p {
+    font-size: clamp(1rem, 2.5vw, 1.25rem); /* Responsive font size */
+    color: var(--text-muted);
+    margin: 10px 0 20px 0;
+}
+
+.page-header .instructions {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* --- Chat Widget & Window --- */
+.chat-widget-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background: var(--primary-color);
+    color: var(--text-light);
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px var(--shadow-medium);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2em; /* Icon size */
+    font-weight: 600;
+    transition: transform 0.2s ease-in-out, background-color 0.2s;
+    z-index: 999;
+}
+.chat-widget-button:hover {
+    transform: scale(1.1);
+    background-color: #0056b3; /* Darker on hover */
+}
+
+.chat-window {
+    display: none; /* Your JS will change this to 'flex' */
+    flex-direction: column;
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 90%; /* Responsive width */
+    max-width: 450px; /* Increased max width for desktop */
+    height: 70vh; /* Responsive height */
+    max-height: 650px; /* Increased max height for desktop */
+    background-color: var(--window-background);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px var(--shadow-medium);
+    overflow: hidden;
+    z-index: 1000;
+    /* Removed for large screens to keep it at bottom-right */
+    /* left: 50%; */
+    /* transform: translateX(-50%); */
+    transition: all 0.3s ease-in-out; /* Smooth transition for open/close */
+}
+
+/* Responsive adjustments for chat window */
+@media (max-width: 480px) {
+    .chat-window {
+        width: 95%;
+        height: 90vh; /* Take up more height on smaller phones */
+        bottom: 10px; /* Closer to the bottom edge */
+        left: 2.5%; /* Adjust left/right for margin */
+        right: 2.5%;
+        transform: translateX(0); /* Ensure centering on small screens */
+        margin: 0 auto; /* Ensure horizontal centering */
+        border-radius: 10px; /* Slightly less rounded corners */
+    }
+    .chat-widget-button {
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        font-size: 1em;
+    }
+}
+
+/* --- Chat Header & Input Area --- */
+.chat-header {
+    background: var(--primary-color);
+    color: var(--text-light);
+    padding: 15px 20px;
+    flex-shrink: 0;
+    display: flex; /* Key: Use flexbox for alignment */
+    justify-content: space-between; /* Key: Separates the title from the actions */
+    align-items: center;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+/* KEY FIX: Make the title expand as much as possible, 
+   pushing the subsequent elements (the button group) to the right. */
+.chat-header h3 { 
+    margin: 0; 
+    font-size: 18px; 
+    flex-grow: 1; /* Allows the title to consume all available space */
+}
+
+/* NEW: Container to group the minimize and close buttons */
+.chat-actions {
+    display: flex; /* Ensures buttons sit side-by-side */
+    align-items: center;
+    /* Optional: Add a small space between the title and the first button */
+    margin-left: 10px; 
+}
+
+/* Updated style for the minimize button */
+.minimize-chat-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    padding: 5px;
+    /* REMOVE margin-right: 5px HERE. Let the grouping container handle spacing. 
+       Or, better, use a consistent margin-left on the next button. */
+    opacity: 0.8;
+    transition: opacity 0.2s;
+    /* Reset margins for alignment within .chat-actions */
+    margin: 0; 
+}
+
+.minimize-chat-btn:hover {
+    opacity: 1;
+}
+
+/* Style the close button */
+.close-chat-btn {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    font-size: 1.5em;
+    padding: 0;
+    opacity: 0.9;
+    transition: opacity 0.2s, transform 0.2s;
+    /* Key: Add margin-left to space it from the minimize button */
+    margin-left: 10px; 
+}
+.close-chat-btn:hover {
+    opacity: 1;
+    transform: rotate(90deg);
+}
+
+.chat-input-area {
+    display: flex;
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    background-color: #fff;
+    align-items: center;
+}
+#chat-input {
+    flex-grow: 1;
+    border: none;
+    background-color: #f1f1f1;
+    border-radius: 20px;
+    padding: 12px 18px;
+    font-size: 14px;
+    font-family: 'Nunito', sans-serif;
+    transition: box-shadow 0.2s;
+}
+#chat-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Improved focus ring */
+}
+#send-message-btn {
+    background-color: var(--primary-color);
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    margin-left: 10px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, transform 0.2s;
+}
+#send-message-btn:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+#send-message-btn:active {
+    transform: scale(0.95); /* Click feedback */
+}
+
+
+/* ======================================================= */
+/* IMPROVED MESSAGE BUBBLE STYLES & CONTAINER            */
+/* ======================================================= */
+
+.chat-messages {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: #f0f2f5;
+    display: flex; /* Make it a flex container */
+    flex-direction: column; /* Stack messages vertically */
+    position: relative; /* Added for positioning scroll arrows */
+}
+
+/* Custom Scrollbar for chat messages */
+.chat-messages::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+
+/* This is the base style for ALL message bubbles */
+.message-bubble {
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-radius: 18px; /* Slightly less rounded corners for better tail integration */
+    line-height: 1.5;
+    max-width: 90%; /* Increased max-width for bubbles */
+    word-wrap: break-word;
+    word-break: break-word; /* Fallback */
+    box-sizing: border-box;
+    box-shadow: 0 1px 2px var(--shadow-light); /* Subtle shadow for depth */
+}
+
+/* Optional: Styling for the sender's name/label inside the bubble */
+.message-bubble strong {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 4px;
+    font-weight: 700;
+    opacity: 0.8; /* Slightly less opaque for sender name */
+    color: inherit; /* Inherit color from bubble */
+}
+
+/* Styles for AGENT/SYSTEM messages */
+.message-bubble.agent {
+    background-color: var(--agent-bubble-color);
+    color: var(--text-dark);
+    align-self: flex-start; /* Aligns to the left */
+    border-bottom-left-radius: 5px; /* "Tail" effect */
+    margin-right: auto;
+}
+
+/* Styles for USER messages */
+.message-bubble.user {
+    background-color: var(--user-bubble-color);
+    color: var(--text-light);
+    align-self: flex-end; /* Aligns to the right */
+    border-bottom-right-radius: 5px; /* "Tail" effect */
+    margin-left: auto;
+}
+
+/* System message specific styles */
+.system-message {
+    background-color: #e0e0e0; /* Softer gray */
+    color: #555;
+    text-align: center;
+    padding: 8px 12px;
+    margin: 10px auto;
+    border-radius: 10px;
+    font-size: 0.85em;
+    max-width: 80%; /* Adjusted max-width for system messages */
+    word-break: break-word;
+    align-self: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* Subtle shadow */
+}
+
+/* --- NEW STYLES FOR LOADER --- */
+.loader {
+    display: none;
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 1s ease-in-out infinite;
+}
+
+.chat-widget-button.loading .chat-icon {
+    display: none;
+}
+.chat-widget-button.loading .loader {
+    display: block;
+}
+
+.chat-widget-button:disabled {
+    cursor: not-allowed;
+    background-color: #0056b3;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ======================================================= */
+/* IMPROVED STYLES FOR INTERACTIVE BUTTONS               */
+/* ======================================================= */
+
+/* Container for a group of buttons inside a message bubble or content card */
+.button-group {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Spacing between buttons */
+    align-items: flex-start; /* Aligns buttons to the start of the container */
+    width: 100%; /* Ensure button group takes full width inside its parent */
+}
+
+/* Base style for each individual interactive button */
+.chat-button {
+    background-color: var(--window-background);
+    border: 1px solid var(--border-color-light);
+    color: var(--primary-color);
+    padding: 10px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    text-align: center;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 1px 2px var(--shadow-light);
+    transition: all 0.2s ease-in-out;
+    width: 100%; /* Make buttons take full available width */
+}
+
+/* Style for when you hover over a clickable button */
+.chat-button:not(:disabled):hover {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    border-color: var(--primary-color);
+    transform: translateY(-2px); /* "Lift" effect */
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+}
+
+/* Style for after a button has been clicked and is disabled */
+.chat-button:disabled {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.7; /* Slightly more opaque disabled state */
+    box-shadow: none; /* No shadow when disabled */
+    transform: none; /* No transform when disabled */
+}
+
+/* ======================================================= */
+/* STYLES FOR RICH CONTENT CARDS                         */
+/* ======================================================= */
+
+.content-cards-container {
+    display: flex;
+    flex-direction: row; /* Keep cards in a row initially */
+    gap: 15px;
+    overflow-x: auto; /* Enable horizontal scrolling */
+    padding: 10px;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    margin-top: 10px;
+    margin-bottom: 10px;
+    /* Custom Scrollbar for horizontal content cards */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #888 #f1f1f1; /* Firefox */
+}
+
+/* Custom Scrollbar for content cards (Webkit) */
+.content-cards-container::-webkit-scrollbar {
+    height: 8px; /* For horizontal scrollbar */
+}
+
+.content-cards-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.content-cards-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.content-cards-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+
+.content-card {
+    border: 1px solid var(--border-color-light);
+    border-radius: 10px; /* Slightly more rounded */
+    padding: 15px;
+    background-color: #fff;
+    box-shadow: 0 4px 12px var(--shadow-light); /* More prominent shadow for cards */
+    min-width: 250px; /* Minimum width for each card */
+    max-width: 300px; /* Max width to keep them manageable */
+    flex-shrink: 0; /* Prevent cards from shrinking */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Pushes buttons to the bottom */
+    transition: transform 0.2s ease-in-out; /* Add hover effect */
+}
+
+.content-card:hover {
+    transform: translateY(-3px); /* Slight lift on hover */
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+}
+
+.content-card img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px; /* Match card rounding */
+    margin-bottom: 12px; /* Slightly more space */
+    object-fit: cover; /* Ensures image covers area without distortion */
+}
+
+.content-card h3 {
+    margin-top: 0;
+    margin-bottom: 8px; /* More space below title */
+    color: var(--text-dark);
+    font-size: 1.15em; /* Slightly larger title */
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.content-card-subtitle {
+    font-size: 0.95em; /* Slightly larger subtitle */
+    color: var(--text-muted);
+    margin-bottom: 10px; /* More space below subtitle */
+    line-height: 1.4;
+}
+
+.content-card-body {
+    font-size: 0.9em; /* Slightly larger body text */
+    color: #555;
+    flex-grow: 1;
+    margin-bottom: 15px; /* More space above buttons/link */
+    line-height: 1.5;
+}
+
+.content-card a.card-link { /* Specific class for main card link */
+    display: block; /* Make link a block for better click area */
+    margin-top: auto; /* Push link to bottom if it's the last element before buttons */
+    margin-bottom: 10px; /* Space between link and buttons */
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9em;
+    align-self: flex-start; /* Align link to left within card */
+}
+
+.content-card a.card-link:hover {
+    text-decoration: underline;
+}
+
+.content-card .button-group {
+    margin-top: 0; /* Reset margin as it's within a card */
+    padding-top: 10px; /* Add padding from content above */
+    border-top: 1px solid #f0f0f0; /* Separator for buttons */
+}
+
+.content-card .chat-button {
+    padding: 10px 15px; /* Consistent padding */
+    border-radius: 18px; /* Rounded buttons within card */
+    font-size: 0.9em;
+    width: 100%; /* Full width within card */
+    box-shadow: none; /* No extra shadow on buttons within cards */
+}
+
+.content-card .chat-button.button-style-primary {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    border-color: var(--primary-color);
+}
+
+.content-card .chat-button.button-style-primary:hover:not(:disabled) {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    transform: translateY(-1px); /* Slight lift */
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.15); /* Subtle shadow */
+}
+
+.content-card .chat-button.button-style-secondary {
+    background-color: #f8f9fa;
+    color: var(--primary-color);
+    border-color: var(--primary-color); /* Secondary buttons also use primary color border */
+}
+
+.content-card .chat-button.button-style-secondary:hover:not(:disabled) {
+    background-color: #e2e6ea;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.content-card .chat-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #f0f0f0; /* Disabled background */
+    color: #aaa; /* Disabled text color */
+    border-color: #ddd;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Optional: File attachment preview styles */
+.file-attachment-preview {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-top: 8px;
+    display: block;
+}
+
+/* Placeholder for image attachments in chat bubbles */
+.message-bubble img.message-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin-top: 5px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.message-bubble img.message-image:hover {
+    transform: scale(1.02);
+}
+
+/* Placeholder for video attachments in chat bubbles */
+.message-bubble video.message-video {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin-top: 5px;
+    background-color: black; /* Placeholder background */
+}
+
+/* Styles for loading/typing indicators if implemented */
+.typing-indicator {
+    font-size: 0.8em;
+    color: #888;
+    margin-bottom: 10px;
+    text-align: left;
+    padding-left: 15px;
+}
+
+/* ======================================================= */
+/* NEW STYLES FOR SCROLL NAVIGATION ARROWS               */
+/* ======================================================= */
+
+.scroll-arrow {
+    position: absolute;
+    top: 50%; /* Vertically center */
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+    color: white;
+    font-size: 1.5em;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 10; /* Ensure it's above cards */
+    opacity: 0.8;
+    transition: background-color 0.2s, opacity 0.2s;
+    user-select: none; /* Prevent text selection */
+}
+
+.scroll-arrow:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+    opacity: 1;
+}
+
+.scroll-arrow-left {
+    left: 5px; /* Position from left edge */
+}
+
+.scroll-arrow-right {
+    right: 5px; /* Position from right edge */
+}
+
+/* Hide arrows on very small screens to avoid clutter */
+@media (max-width: 350px) {
+    .scroll-arrow {
+        display: none;
+    }
+}
+
+/* ======================================================= */
+/* NEW STYLES FOR SCREENSHOT BUTTONS                     */
+/* ======================================================= */
+
+/* Container for the buttons from the screenshot */
+.chat-options-group {
+    background-color: var(--window-background);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px var(--shadow-medium);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Spacing between buttons */
+    margin: 20px auto; /* Center the group and add vertical space */
+    max-width: 350px; /* Limit width for better appearance */
+    width: 100%; /* Ensure it's responsive */
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
+/* Style for individual buttons within the screenshot group */
+.chat-option-button {
+    background-color: var(--screenshot-button-bg);
+    border: 1px solid var(--screenshot-button-border);
+    color: var(--screenshot-button-text);
+    padding: 12px 20px;
+    border-radius: 8px; /* Less rounded than chat-button, matching screenshot */
+    cursor: pointer;
+    text-align: center;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600; /* Slightly less bold than default chat buttons */
+    font-size: 1.0em; /* Clear readable font size */
+    box-shadow: 0 2px 5px var(--screenshot-button-shadow); /* Subtle shadow */
+    transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    width: 100%; /* Make buttons fill the width of their container */
+    box-sizing: border-box; /* Include padding and border in width */
+}
+
+.chat-option-button:hover:not(:disabled) {
+    background-color: var(--screenshot-button-hover-bg);
+    transform: translateY(-1px); /* Slight lift on hover */
+    box-shadow: 0 4px 8px var(--screenshot-button-shadow); /* Enhanced shadow on hover */
+}
+
+.chat-option-button:active {
+    transform: translateY(0); /* Press down effect */
+    box-shadow: 0 1px 3px var(--screenshot-button-shadow);
+}
+
+.chat-option-button:disabled {
+    background-color: #f0f0f0;
+    border-color: #ccc;
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.7;
+    box-shadow: none;
+    transform: none;
+}
+
+/* 2. Style for the container card within the bubble */
+.form-card {
+    /* Make the card stand out inside the bubble */
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #ffffff; /* White background for the card content */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+    overflow: hidden; /* Ensures content stays inside */
+}
+
+.form-card h4 {
+    /* Style the form title */
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-size: 1.1em;
+    color: #333;
+    line-height: 1.3;
+}
+
+.form-card p {
+    /* Style the form subtitle */
+    margin-bottom: 15px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+/* 3. Style for the "Open Form" button/link */
+.form-link-button {
+    display: inline-block;
+    padding: 8px 15px;
+    background-color: #007bff; /* A prominent color (e.g., blue) */
+    color: white;
+    text-decoration: none; /* Remove underline from link */
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 1em;
+    transition: background-color 0.2s; /* Smooth hover effect */
+}
+
+.form-link-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
