@@ -1,7 +1,7 @@
 {
   "name": "ccaas-headless-sdk-demo",
   "version": "1.0.0",
-  "description": "This repository contains a demonstration of a chat application built using a CCAAS (Contact Center as a Service) Headless SDK. It showcases a basic client-server architecture where the Node.js backend handles secure authentication and configuration delivery, while the pure JavaScript frontend provides the chat user interface.",
+  "description": "This repository contains a demonstration of a chat application built using a CCAAS (Contact Center as a Service) Web Headless SDK. It showcases a basic client-server architecture where the Node.js backend handles secure authentication and configuration delivery, while the pure JavaScript frontend provides the chat user interface.",
   "main": "index.js",
   "scripts": {
     "start-backend": "npm start --prefix server",
@@ -11,15 +11,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ayushbisaria/ccaas-headless-sdk-demo.git"
+    "url": "git+https://github.com/ayushbisaria/ccaas-web-headless-sdk-sample.git"
   },
   "keywords": [],
   "author": "Ayush Bisaria",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ayushbisaria/ccaas-headless-sdk-demo/issues"
+    "url": "https://github.com/ayushbisaria/ccaas-web-headless-sdk-sample/issues"
   },
-  "homepage": "https://github.com/ayushbisaria/ccaas-headless-sdk-demo#readme",
+  "homepage": "https://github.com/ayushbisaria/ccaas-web-headless-sdk-sample#readme",
   "dependencies": {
     "concurrently": "^9.1.2"
   }
