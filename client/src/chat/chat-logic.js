@@ -308,6 +308,8 @@ export function setupSDKEvents() {
     client.on("chat.memberLeft", (identity) => console.log("[Event] Chat Member Left", identity));
     client.on("chat.memberJoined", (identity) => console.log("[Event] Chat Member Joined", identity));
     client.on("chat.ongoing", (chat) => console.log("[Event] Chat Ongoing Event", chat));
+    client.on("chat.timeout", () => console.log("[Event] Chat Timed out"));
+    client.on("chat.destroyed", () => console.log("[Event] Chat Destroyed"));
     client.on("cobrowse.request", from => console.log("[Event] cobrowse session requested from", from));
     client.on("cobrowse.loaded", session => console.log("[Event] cobrowse session loaded", session));
     client.on("cobrowse.updated", session => console.log("[Event] cobrowse session updated", session));
@@ -318,7 +320,6 @@ export function setupSDKEvents() {
         isOngoingChat = false;
         DOM.chatWindow.style.display = 'none';
         DOM.startChatBtn.style.display = 'block';
-        //closeChatInterface();
     });
 }
 

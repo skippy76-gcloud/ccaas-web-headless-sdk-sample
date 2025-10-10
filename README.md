@@ -1,6 +1,6 @@
-# CCAI-Platform Headless SDK Chat Demo
+# CCaaS Web Headless SDK Chat Demo
 
-This repository contains a demonstration of a chat application built using a ccai-platform Headless SDK. It showcases a basic client-server architecture where the Node.js backend handles secure authentication and configuration delivery, while the pure JavaScript frontend provides the chat user interface.
+This repository contains a demonstration of a chat application built using a CCaaS Web Headless SDK. It showcases a basic client-server architecture where the Node.js backend handles secure authentication and configuration delivery, while the pure JavaScript frontend provides the chat user interface.
 
 ## 🚀 Features
 
@@ -17,23 +17,24 @@ This repository contains a demonstration of a chat application built using a cca
 The project is organized into two main directories:
 ```
 .
+├── Readme.md
 ├── client/
-│   ├── favicon23.png
-│   ├── favicon.png
 │   ├── index.html
-│   ├── node_modules/
+│   ├── additional.html
 │   ├── package.json
 │   ├── package-lock.json
-│   ├── public/
-│   │   └── vite.svg
 │   └── src/
-│       ├── javascript.svg
 │       ├── main.js
 │       └── style.css
-├── Readme.md
+│       └── api/
+│           └── auth.js
+│           └── config.js
+│       └── chat/
+│           └── client.js
+│           └── chat-logic.js
+│           └── dom-elements.js
 └── server/
     ├── config
-    ├── node_modules
     ├── package.json
     ├── package-lock.json
     └── server.js
@@ -42,7 +43,7 @@ The project is organized into two main directories:
 
 ## 🏗️ Architecture
 
-![alt text](https://github.com/ayushbisaria/ccaip-headless-sdk-demo/blob/main/architecture.png?raw=true)
+![alt text](https://github.com/ayushbisaria/ccaas-web-headless-sdk-sample/blob/main/architecture.png?raw=true)
 
 ## 📋 Prerequisites
 
@@ -50,8 +51,7 @@ Before you begin, ensure you have the following installed on your system:
 
 * [**Node.js**](https://nodejs.org/en/download/) (LTS version recommended)
 * [**npm**](https://www.npmjs.com/get-npm) (comes with Node.js)
-* [**CCAIP Instance**]: You must have an existing ccaip instance. At least one queue should be configured and integrated with a Dialogflow CX agent, and at least one human agent should be assigned to same queue. Make sure to note the queue ID, as it will be required in the SDK configuration as menuID.
-* [**DFCX Agent**]: You can refer uploaded dfcx agent blob at [here](https://github.com/ayushbisaria/ccaip-headless-sdk-demo/blob/main/example/sample_dfcx_agent_zip/), restore it in your dfcx console and integrate it with ccai-platform web queue. This agent contains [samples of different ccaip custom payloads](https://cloud.google.com/contact-center/ccai-platform/docs/va-custom-payload) (like inline_buttons, content cards etc.) implemented within page intent routes.
+* [**CCAIP Instance**]: You must have a ccaip instance. At least one web queue should be configured, one human agent is assigned to the queue and direct access point with some label should be configured in that queue.
 
 ## 🚀 Setup & Installation
 
@@ -59,8 +59,8 @@ Follow these steps to get the demo up and running on your local machine:
 
 1.  **Clone the Repository:**
     ```bash
-    git clone [https://github.com/ayushbisaria/ccaip-headless-sdk-demo.git)
-    cd ccaip-headless-sdk-demo
+    git clone [https://github.com/ayushbisaria/ccaas-web-headless-sdk-sample.git)
+    cd ccaas-web-headless-sdk-sample
     ```
 2.  **Backend Setup:**
     Navigate into the `server` directory, install its dependencies, and set up its environment variables.
@@ -68,38 +68,27 @@ Follow these steps to get the demo up and running on your local machine:
     ```bash
     cd server
     npm install
-    mkdir config
     cd config
-    touch .env 
+    mv env.example .env
     ```
-    Now, open the newly created `.env` file in your `server/config` directory and fill in the actual values. **Do NOT commit your `.env` file to Git.**
+    Now, open the `.env` file in your `server/config` directory and fill in the actual values. **Do NOT commit your `.env` file to Git.**
 
     ```dotenv
     # server/.env
     COMPANY_SECRET="YOUR_CCAIP_COMPANY_SECRET_FROM_CCAIP_DEVELOPER_SETTINGS"
     HOST="YOUR_CCAIP_HOST"
     COMPANY_ID="YOUR_CCAIP_COMPANY_ID_FROM_CCAIP_DEVELOPER_SETTINGS"
-    MENU_ID="YOUR_QUEUE_ID" # e.g., "23"
-    TENANT="YOUR_CCAIP_TENANT_NAME" 
+    MENU_KEY="YOUR_QUEUE_DIRECT_ACCESS_POINT_NAME"
+    TENANT="YOUR_CCAIP_TENANT_NAME"
     ```
 
 3.  **Frontend Setup:**
     Navigate into the `client` directory, install its dependencies, and set up its environment variables.
 
     ```bash
-    cd ../client # Go back to the root and then into client
+    cd ../client # Go back to the root and then into client directory
     npm install
     ```
-    **Creating env in client directory is not required**
-    Open the newly created `.env.development` file in your `client/` directory. **For this specific project, the frontend currently fetches config from the backend, so you might not need additional variables here unless your Vite setup explicitly uses them for something else.**
-
-    ```dotenv
-    # client/.env.development
-    # No specific variables required here for this demo, as config comes from backend.
-    # But if you had frontend-specific API_URLs, they'd go here:
-    # VITE_API_URL=http://localhost:3000
-    ```
-
 ---
 
 ## 🚀 Running the Application
@@ -110,7 +99,7 @@ There are two ways to run the application:
 
 This method uses `concurrently` to start both the backend and frontend simultaneously. This is the easiest way to get everything running.
 
-1.  From the **root directory** of your project (`ccaip-headless-sdk-demo/`), run:
+1.  From the **root directory** of your project (`ccaas-web-headless-sdk-sample/`), run:
     ```bash
     npm install
     npm run dev
@@ -149,9 +138,11 @@ The client-side code (main.js) extensively utilizes various methods and listens 
 
 ### Methods Used:
 
+* `getMenus`: Get Queue details based on direct access point
 * `createChat`: Initiates a new chat session with the ccai platform.
 * `finishChat`: Ends an ongoing chat session.
 * `resumeChat`: Resumes a dismissed chat.
+* `loadOngoingChat`: load ongoing chat in case of page reloads.
 * `destroyChat`: destroys the current ongoing chat.
 * `fetchMessages`: Retrieves the history of messages for the current chat.
 * `sendTextMessage`: Sends a plain text message from the user.
@@ -165,6 +156,9 @@ The client-side code (main.js) extensively utilizes various methods and listens 
 * `chat.message`: Fired when a new message (text, file, custom payload) is received in the chat.
 * `chat.update`: Provides updates on the chat session status or properties.
 * `chat.connected`: Indicates that the chat connection has been successfully established.
+* `chat.ended`: Indicates that the chat is ended.
+* `chat.destroyed`: Indicates that the chat session is destroyed.
+* `chat.dismissed`: Indicates that the chat has gone into dismissed state.
 
 ## 💡 Technical Notes
 
