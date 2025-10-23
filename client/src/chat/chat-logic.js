@@ -40,12 +40,11 @@ export async function startChat() {
     DOM.messagesDiv.innerHTML = '<div class="system-message">Connecting...</div>';
 
     const custom_data = {
-        /*
         unsigned: {
+            "external_chat_transfer": {"greeting_override":"Hell I am AB, How can i help?","agent":{"name":"AB"},"transcript":[{"sender":"virtual_agent","timestamp":"2025-10-06 12:00:00Z","content":[{"type":"text","text":"Hello! How can I help you today?"},{"type":"buttons","buttons":[{"label":"Create New Order","selected":true},{"label":"Check Order Status","selected":true},{"label":"Check Account Balance","selected":false}]}]},{"sender":"end_user","timestamp":"2025-10-06 12:00:15Z","content":[{"type":"text","text":"Check Order Status"}]},{"sender":"virtual_agent","timestamp":"2025-10-06 12:00:16Z","content":[{"type":"text","text":"I can help you with that, what's your order number?"}]},{"sender":"end_user","timestamp":"2025-10-06 12:00:20Z","content":[{"type":"media","media":{"type":"image","url":"https://ujet.s3.amazonaws.com/default-virtual-agent-avatar-1.png"}}]}]},
             "version": { "label": "Version", "value": "1.0.0" }
         },
         signed: signedPToken.token
-        */
     };
 
     if (isOngoingChat) {
@@ -223,7 +222,10 @@ export function setupSDKEvents() {
             console.log("[Info] chat history:",chatHistory);
             chatHistory.chats.forEach(chat => chat.entries.forEach(appendMessage));
         }
-        client.fetchMessages().then(messages => messages.forEach(appendMessage));
+        client.fetchMessages().then(messages => {
+            console.log("Messages: ", messages);
+            messages.forEach(appendMessage);
+            });
     });
 
     // --- Message Listener ---

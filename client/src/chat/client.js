@@ -2,6 +2,8 @@
 import { Client } from "@ujet/websdk-headless";
 import { authenticate } from '../api/auth.js';
 import { ccaasConfig } from '../api/config.js';
+//import {Logger, consoleLoggerHandler } from '@ujet/websdk-headless'
+//Logger.addHandler(consoleLoggerHandler)
 
 /**
  * Initializes and returns the CCaaS Client SDK instance.
