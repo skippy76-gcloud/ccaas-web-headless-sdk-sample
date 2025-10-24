@@ -47,9 +47,11 @@ async function initializeChatApp() {
             chatStatus = true;
         }
         
+        
         console.log("[Info] Client initialized successfully");
         console.log("[Info] queue/menu id:", queue.menus[0].id);
         console.log("[Info] Is there any Ongoing chat:", chatStatus ? 'Yes' : 'No');
+
 
     } catch (error) {
         console.error("Error during client/data setup:", error);

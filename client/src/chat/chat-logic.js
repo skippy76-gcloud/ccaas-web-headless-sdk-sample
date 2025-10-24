@@ -9,6 +9,7 @@ let signedPToken = null;
 let client = null;
 let chatHistory = null;
 let isOngoingChat;
+let waitTimeResponse;
 
 
 /**
@@ -41,7 +42,7 @@ export async function startChat() {
 
     const custom_data = {
         unsigned: {
-            "external_chat_transfer": {"greeting_override":"Hell I am AB, How can i help?","agent":{"name":"AB"},"transcript":[{"sender":"virtual_agent","timestamp":"2025-10-06 12:00:00Z","content":[{"type":"text","text":"Hello! How can I help you today?"},{"type":"buttons","buttons":[{"label":"Create New Order","selected":true},{"label":"Check Order Status","selected":true},{"label":"Check Account Balance","selected":false}]}]},{"sender":"end_user","timestamp":"2025-10-06 12:00:15Z","content":[{"type":"text","text":"Check Order Status"}]},{"sender":"virtual_agent","timestamp":"2025-10-06 12:00:16Z","content":[{"type":"text","text":"I can help you with that, what's your order number?"}]},{"sender":"end_user","timestamp":"2025-10-06 12:00:20Z","content":[{"type":"media","media":{"type":"image","url":"https://ujet.s3.amazonaws.com/default-virtual-agent-avatar-1.png"}}]}]},
+            "external_chat_transfer": {"greeting_override":"Hell I am AB, How can i help?","agent":{"name":"AB"},"transcript":[{"sender":"agent","timestamp":"2025-10-06 12:00:00Z","content":[{"type":"text","text":"Hello! How can I help you today?"},{"type":"buttons","buttons":[{"label":"Create New Order","selected":true},{"label":"Check Order Status","selected":true},{"label":"Check Account Balance","selected":false}]}]},{"sender":"end_user","timestamp":"2025-10-06 12:00:15Z","content":[{"type":"text","text":"Check Order Status"}]},{"sender":"agent","timestamp":"2025-10-06 12:00:16Z","content":[{"type":"text","text":"I can help you with that, what's your order number?"}]},{"sender":"end_user","timestamp":"2025-10-06 12:00:20Z","content":[{"type":"media","media":{"type":"image","url":"https://ujet.s3.amazonaws.com/default-virtual-agent-avatar-1.png"}}]}]},
             "version": { "label": "Version", "value": "1.0.0" }
         },
         signed: signedPToken.token
@@ -52,11 +53,13 @@ export async function startChat() {
         client._triggerEvent("chat.connected");
     } else {
         console.log("[Info] No ongoing chat found. Creating new chat...");
-        client.createChat(chatQueue.menus[0].id, { custom_data })
+        await client.createChat(chatQueue.menus[0].id, { custom_data })
             .catch(error => {
                 console.error("Error creating chat:", error);
                 DOM.messagesDiv.innerHTML = '<div class="system-message">Error: Could not start chat.</div>';
-            });     
+            });  
+        waitTimeResponse = await client.getWaitTimes(chatQueue.menus[0].id, document.documentElement.lang);
+        console.log("[Info] WaitTime: ",waitTimeResponse);   
     }
 }
 
