@@ -28,6 +28,8 @@ export function hookDOMElements() {
     DOM.closeChatBtn = document.getElementById("closeChatBtn");
     DOM.minimizeChatBtn = document.getElementById("minimizeChatBtn");
     DOM.screenShareBtn = document.getElementById("screen-share-btn");
+    DOM['typing-indicator'] = document.getElementById("typing-indicator");
+    DOM['typing-text'] = document.getElementById("typing-text");
 
     // Add initial check for critical elements
     if (!DOM.messagesDiv || !DOM.startChatBtn) {

@@ -10,7 +10,7 @@ let client = null;
 let chatHistory = null;
 let isOngoingChat;
 let waitTimeResponse;
-
+let isTyping = false;
 
 /**
  * Initializes necessary context for chat logic.
@@ -25,7 +25,7 @@ export function setChatContext(sdkClient, queue, sToken, history, cStatus) {
     chatQueue = queue;
     signedPToken = sToken;
     chatHistory = history;
-    isOngoingChat = cStatus;    
+    isOngoingChat = cStatus;
 }
 
 
@@ -34,7 +34,7 @@ export async function startChat() {
         console.error("Chat client or queue not initialized.");
         return;
     }
-    
+
     console.log("[Info] Attempting to load/create chat...");
     DOM.chatWindow.style.display = 'flex';
     DOM.startChatBtn.style.display = 'none';
@@ -42,7 +42,7 @@ export async function startChat() {
 
     const custom_data = {
         unsigned: {
-            "external_chat_transfer": {"greeting_override":"Hell I am AB, How can i help?","agent":{"name":"AB"},"transcript":[{"sender":"agent","timestamp":"2025-10-06 12:00:00Z","content":[{"type":"text","text":"Hello! How can I help you today?"},{"type":"buttons","buttons":[{"label":"Create New Order","selected":true},{"label":"Check Order Status","selected":true},{"label":"Check Account Balance","selected":false}]}]},{"sender":"end_user","timestamp":"2025-10-06 12:00:15Z","content":[{"type":"text","text":"Check Order Status"}]},{"sender":"agent","timestamp":"2025-10-06 12:00:16Z","content":[{"type":"text","text":"I can help you with that, what's your order number?"}]},{"sender":"end_user","timestamp":"2025-10-06 12:00:20Z","content":[{"type":"media","media":{"type":"image","url":"https://ujet.s3.amazonaws.com/default-virtual-agent-avatar-1.png"}}]}]},
+            "external_chat_transfer": { "greeting_override": "Hell I am AB, How can i help?", "agent": { "name": "AB" }, "transcript": [{ "sender": "agent", "timestamp": "2025-10-06 12:00:00Z", "content": [{ "type": "text", "text": "Hello! How can I help you today?" }, { "type": "buttons", "buttons": [{ "label": "Create New Order", "selected": true }, { "label": "Check Order Status", "selected": true }, { "label": "Check Account Balance", "selected": false }] }] }, { "sender": "end_user", "timestamp": "2025-10-06 12:00:15Z", "content": [{ "type": "text", "text": "Check Order Status" }] }, { "sender": "agent", "timestamp": "2025-10-06 12:00:16Z", "content": [{ "type": "text", "text": "I can help you with that, what's your order number?" }] }, { "sender": "end_user", "timestamp": "2025-10-06 12:00:20Z", "content": [{ "type": "media", "media": { "type": "image", "url": "https://ujet.s3.amazonaws.com/default-virtual-agent-avatar-1.png" } }] }] },
             "version": { "label": "Version", "value": "1.0.0" }
         },
         signed: signedPToken.token
@@ -57,9 +57,9 @@ export async function startChat() {
             .catch(error => {
                 console.error("Error creating chat:", error);
                 DOM.messagesDiv.innerHTML = '<div class="system-message">Error: Could not start chat.</div>';
-            });  
+            });
         waitTimeResponse = await client.getWaitTimes(chatQueue.menus[0].id, document.documentElement.lang);
-        console.log("[Info] WaitTime: ",waitTimeResponse);   
+        console.log("[Info] WaitTime: ", waitTimeResponse);
     }
 }
 
@@ -80,7 +80,7 @@ export async function closeChatInterface() {
 
 export async function cobrowseStart() {
     console.log("[Info] Screen share button clicked. Initiating cobrowse code creation...");
-    
+
     if (!client || !client.createCobrowseCode || !client.startCobrowse) {
         console.error("Cobrowse client object or its methods are not defined.");
         alert("Cobrowse service is currently unavailable.");
@@ -105,7 +105,7 @@ export async function cobrowseStart() {
     );
 
     if (shouldStart) {
-        try {   
+        try {
             //await client.startCobrowse();
             console.log("Cobrowse started successfully.");
         } catch (error) {
@@ -176,7 +176,7 @@ export function handleFormCompletion(event) {
     const message = event.data;
     if (message && message.type === 'form_complete') {
         console.log('🎉 Form submission received via postMessage!', message);
-        
+
         // This is the message you want to send back to the CCaaS SDK
         const submissionNotiMessage = {
             type: 'noti',
@@ -192,7 +192,7 @@ export function handleFormCompletion(event) {
             ongoingChatInstance.sendMessage(submissionNotiMessage)
                 .then(() => console.log("[Info] Form completion notification sent to agent."))
                 .catch(e => console.error("[Error] Failed to send form completion notification:", e));
-            
+
             // Optional: Visually confirm the submission in the chat UI
             appendMessage({
                 $userType: 'agent',
@@ -219,21 +219,22 @@ export function setupSDKEvents() {
         systemMessage.classList.add('system-message');
         systemMessage.textContent = 'Chat session started';
         DOM.messagesDiv.appendChild(systemMessage);
-           
+
         // Load history and messages
         if (chatHistory && chatHistory.chats) {
-            console.log("[Info] chat history:",chatHistory);
+            console.log("[Info] chat history:", chatHistory);
             chatHistory.chats.forEach(chat => chat.entries.forEach(appendMessage));
         }
         client.fetchMessages().then(messages => {
             console.log("Messages: ", messages);
             messages.forEach(appendMessage);
-            });
+        });
     });
 
     // --- Message Listener ---
     client.on("chat.message", (message) => {
         console.log("[Event] chat.message", message);
+        stopTyping();
         if (message.$userType === 'end_user') {
             console.log("[Info] chat.message Ignoring echo of user's own message.");
             return;
@@ -258,14 +259,96 @@ export function setupSDKEvents() {
             console.log("[Info] chat.message Form Requested");
             return;
         }
-        if (message.type === 'noti' && message.event === 'cobrowseRequestedFromAgent'){
+        if (message.type === 'noti' && message.event === 'cobrowseRequestedFromAgent') {
             console.log("[Info] chat.message ScreenShare Requested By Customer Care");
             //cobrowseStart();
             return;
         }
+        if (message.type === "noti" && message.event === 'checkInTimedOut') {
+            console.log("[Info] chat.message Check In Timed Out");
+
+            // Hide the active checkInRequired bubble if it's currently displayed
+            const checkInBubble = document.getElementById('checkin-required-bubble');
+            if (checkInBubble) {
+                checkInBubble.style.display = 'none';
+                checkInBubble.removeAttribute('id'); // Prevent accidental reuse
+            }
+
+            const timeoutBubble = document.createElement('p');
+            timeoutBubble.classList.add('message-bubble', 'agent');
+            timeoutBubble.innerHTML = `
+                <strong>System:</strong>
+                <div style="margin-top: 5px;">
+                    <div style="font-weight: 700; margin-bottom: 4px;">Sorry we missed you!</div>
+                    <div style="margin-bottom: 10px;">Please rejoin the queue if you would still like to connect with an agent.</div>
+                    <div class="button-group">
+                        <button class="chat-button button-style-primary rejoin-queue-btn">Rejoin Queue</button>
+                        <button class="chat-button button-style-secondary exit-chat-btn">Exit chat</button>
+                    </div>
+                </div>
+            `;
+
+            const rejoinBtn = timeoutBubble.querySelector('.rejoin-queue-btn');
+            rejoinBtn.addEventListener('click', async () => {
+                timeoutBubble.style.display = 'none';
+
+                // Call CheckInResponse method in UJET headless SDK to rejoin queue. 
+                const response = await client.rejoinChat();
+                console.log("[Info] checkInResponse called to Rejoin Queue.");
+            });
+
+            const exitBtn = timeoutBubble.querySelector('.exit-chat-btn');
+            exitBtn.addEventListener('click', () => {
+                timeoutBubble.style.display = 'none';
+                closeChatInterface();
+            });
+
+            DOM.messagesDiv.appendChild(timeoutBubble);
+            DOM.messagesDiv.scrollTop = DOM.messagesDiv.scrollHeight;
+            return;
+        }
+        if (message.type === "noti" && message.event === 'checkInRequired') {
+            console.log("[Info] chat.message Check In Required");
+
+            const checkInBubble = document.createElement('p');
+            checkInBubble.classList.add('message-bubble', 'agent');
+            checkInBubble.id = 'checkin-required-bubble'; // Added ID so timeout can hide it later
+            checkInBubble.innerHTML = `
+                <strong>System:</strong>
+                <div style="margin-top: 5px;">
+                    <div style="font-weight: 700; margin-bottom: 4px;">Ready to chat?</div>
+                    <div style="margin-bottom: 10px;">It's almost your turn. Please confirm you are ready to connect with an agent.</div>
+                    <div class="button-group">
+                        <button class="chat-button button-style-primary confirm-checkin-btn">Confirm</button>
+                    </div>
+                </div>
+            `;
+
+            const confirmBtn = checkInBubble.querySelector('.confirm-checkin-btn');
+            confirmBtn.addEventListener('click', async () => {
+                checkInBubble.style.display = 'none'; // Hide the message
+                // Call CheckInResponse method in UJET headless SDK
+                const response = await client.checkIn();
+                console.log("[Info] CheckInResponse called.", response);
+            });
+
+            DOM.messagesDiv.appendChild(checkInBubble);
+            DOM.messagesDiv.scrollTop = DOM.messagesDiv.scrollHeight;
+
+            (async () => {
+                try {
+                    await client.notifyCheckInState();
+                    console.log("[Info] client.notifyCheckInState() called successfully.");
+                } catch (error) {
+                    console.error("[Error] notifyCheckInState failed: ", error);
+                }
+            })();
+
+            return;
+        }
         appendMessage(message);
     });
-    
+
     // --- Chat Updated (Status changes, Dismissed) ---
     client.on("chat.updated", (chat) => {
         // ... (Your chat.updated logic, including the button creation for dismissed status, goes here) ...
@@ -274,13 +357,13 @@ export function setupSDKEvents() {
             const chatOptionsGroup = document.createElement('div');
             chatOptionsGroup.classList.add('chat-options-group');
             // ... (Button creation logic for 'Continue conversation', 'Start a new conversation', 'Exit chat') ...
-            const buttonTexts = [ "Continue conversation", "Start a new conversation", "Exit chat" ];
+            const buttonTexts = ["Continue conversation", "Start a new conversation", "Exit chat"];
 
             buttonTexts.forEach(text => {
                 const button = document.createElement('button');
                 button.classList.add('chat-option-button');
                 button.textContent = text;
-                
+
                 button.addEventListener('click', async () => {
                     if (text === "Continue conversation") {
                         try { await client.resumeChat(chat.state.id); } catch (e) { console.warn("Could not resume chat:", e); }
@@ -298,13 +381,18 @@ export function setupSDKEvents() {
         }
         // ... (Status text display logic) ...
         if (chat.state.status && chat.state.status_text) {
-             const systemMessage = document.createElement('div');
-             systemMessage.classList.add('system-message');
-             // Simplified status text cleaning
-             systemMessage.textContent = chat.state.status_text.replace(/<[^>]*>?/gm, ''); 
-             DOM.messagesDiv.appendChild(systemMessage);
-             DOM.messagesDiv.scrollTop = DOM.messagesDiv.scrollHeight;
-         }
+            const cleanText = chat.state.status_text.replace(/<[^>]*>?/gm, '');
+            // Only append the system message if it's not a typing indicator 
+            // and it's not already the last system message shown
+            if (!cleanText.toLowerCase().includes('typing') && cleanText !== window._lastStatusText) {
+                const systemMessage = document.createElement('div');
+                systemMessage.classList.add('system-message');
+                systemMessage.textContent = cleanText;
+                DOM.messagesDiv.appendChild(systemMessage);
+                DOM.messagesDiv.scrollTop = DOM.messagesDiv.scrollHeight;
+                window._lastStatusText = cleanText;
+            }
+        }
     });
 
     // --- Other SDK Events (cobrowse, ready, etc.) ---
@@ -315,6 +403,16 @@ export function setupSDKEvents() {
     client.on("chat.ongoing", (chat) => console.log("[Event] Chat Ongoing Event", chat));
     client.on("chat.timeout", () => console.log("[Event] Chat Timed out"));
     client.on("chat.destroyed", () => console.log("[Event] Chat Destroyed"));
+    client.on("chat.typingStarted", (identity) => {
+        console.log("[Event] Chat user started typing", identity);
+        isTyping = true;
+        startTyping({ identity });
+    });
+    client.on("chat.typingEnded", (identity) => {
+        console.log("[Event] Chat user stopped typing", identity);
+        isTyping = false;
+        stopTyping({ identity });
+    });
     client.on("cobrowse.request", from => console.log("[Event] cobrowse session requested from", from));
     client.on("cobrowse.loaded", session => console.log("[Event] cobrowse session loaded", session));
     client.on("cobrowse.updated", session => console.log("[Event] cobrowse session updated", session));
@@ -323,9 +421,40 @@ export function setupSDKEvents() {
     client.on("chat.ended", () => {
         console.log("[Event] End session event received!");
         isOngoingChat = false;
+        isTyping = false;
         DOM.chatWindow.style.display = 'none';
         DOM.startChatBtn.style.display = 'block';
     });
+}
+
+/**
+ * Typing handling
+ */
+export function startTyping(event) {
+    const typingIndicator = DOM['typing-indicator'];
+    const typingText = DOM['typing-text'];
+
+    const isCustomer = event.$userType === 'end_user' || (event.identity && event.identity.is_customer);
+
+    // We usually only want to show the indicator if the OTHER person is typing
+    if (!isCustomer && typingIndicator && typingText) {
+        const senderName = (event.identity && event.identity.display_name) || 'Agent';
+        typingText.innerText = `${senderName} is typing`;
+        typingIndicator.classList.remove('hidden');
+
+        // Ensure the chat window scrolls down to show the indicator
+        if (DOM.messagesDiv) {
+            DOM.messagesDiv.scrollTop = DOM.messagesDiv.scrollHeight;
+        }
+    }
+}
+
+export function stopTyping(event) {
+    const typingIndicator = DOM['typing-indicator'];
+
+    if (typingIndicator) {
+        typingIndicator.classList.add('hidden');
+    }
 }
 
 /**
@@ -335,29 +464,29 @@ export function setupUIListeners() {
     DOM.startChatBtn.addEventListener("click", startChat);
     DOM.sendMessageBtn.addEventListener("click", () => sendMessage());
 
-    DOM.chatInput.addEventListener("keypress", function(event) {
+    DOM.chatInput.addEventListener("keypress", function (event) {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
             sendMessage();
         }
     });
-    
+
     /*DOM.closeChatBtn.addEventListener("click", () => {
         if (client.chat) {
             console.log("[Info] Close button clicked. Ending chat...");
             client.finishChat();
         }
     });*/
-    
+
     DOM.closeChatBtn.addEventListener("click", closeChatInterface);
     DOM.minimizeChatBtn.addEventListener("click", minimizeChatInterface);
 
     DOM.screenShareBtn.addEventListener("click", cobrowseStart);
-    
-    DOM.attachmentInput.addEventListener('change', function(event) {
+
+    DOM.attachmentInput.addEventListener('change', function (event) {
         const selectedFile = event.target.files[0];
         const allowedTypes = ['image/jpeg', 'image/png', 'video/mp4', 'application/pdf'];
-        
+
         if (selectedFile) {
             if (!allowedTypes.includes(selectedFile.type)) {
                 alert('Only JPG, PNG, and MP4 files are allowed.');

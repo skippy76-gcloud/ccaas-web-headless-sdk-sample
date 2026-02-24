@@ -12,6 +12,6 @@
     "vite": "^6.3.5"
   },
   "dependencies": {
-    "@ujet/websdk-headless": "^3.40.2"
+    "@ujet/websdk-headless": "^3.44.2"
   }
 }
