@@ -35,6 +35,13 @@ export async function startChat() {
         return;
     }
 
+    try {
+        const company = await client.getCompany();
+        console.log("[Info] Company info:", company);
+    } catch (error) {
+        console.error("[Error] Failed to get company info:", error);
+    }
+
     console.log("[Info] Attempting to load/create chat...");
     DOM.chatWindow.style.display = 'flex';
     DOM.startChatBtn.style.display = 'none';
@@ -53,7 +60,7 @@ export async function startChat() {
         client._triggerEvent("chat.connected");
     } else {
         console.log("[Info] No ongoing chat found. Creating new chat...");
-        await client.createChat(chatQueue.menus[0].id, { custom_data })
+        await client.createChat(chatQueue.menus[0].id, { custom_data, message_preview: true })
             .catch(error => {
                 console.error("Error creating chat:", error);
                 DOM.messagesDiv.innerHTML = '<div class="system-message">Error: Could not start chat.</div>';
@@ -468,6 +475,51 @@ export function setupUIListeners() {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
             sendMessage();
+        }
+    });
+
+    const PREVIEW_THROTTLE_INTERVAL = 2000;
+    const PREVIEW_DEBOUNCE_DELAY = 1000;
+    const STOP_TYPING_DELAY = 5000;
+
+    let lastPreviewTime = 0;
+    let previewTimer;
+    let stopTimer;
+
+    DOM.chatInput.addEventListener("input", async function (event) {
+        if (client && client.sendPreviewMessage) {
+            if (client.chat) {
+                client.chat.startTyping();
+                clearTimeout(stopTimer);
+                stopTimer = setTimeout(() => {
+                    if (client.chat) {
+                        client.chat.stopTyping();
+                    }
+                }, STOP_TYPING_DELAY);
+            }
+
+            clearTimeout(previewTimer);
+            const currentTime = Date.now();
+            if (currentTime - lastPreviewTime >= PREVIEW_THROTTLE_INTERVAL) {
+                lastPreviewTime = currentTime;
+                try {
+                    console.log("[Info] Sending preview message:", DOM.chatInput.value);
+                    const response = await client.sendPreviewMessage(DOM.chatInput.value);
+                } catch (error) {
+                    console.error("Error sending preview message:", error);
+                }
+            } else {
+                console.log("[Info] Preview message not sent, too soon.");
+                previewTimer = setTimeout(async () => {
+                    lastPreviewTime = Date.now();
+                    try {
+                        console.log("[Info] Sending debounced preview message:", DOM.chatInput.value);
+                        const response = await client.sendPreviewMessage(DOM.chatInput.value);
+                    } catch (error) {
+                        console.error("Error sending debounced preview message:", error);
+                    }
+                }, PREVIEW_DEBOUNCE_DELAY);
+            }
         }
     });
 
